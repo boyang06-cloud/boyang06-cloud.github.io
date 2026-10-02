@@ -1,0 +1,32 @@
+---
+import { render } from 'astro:content';
+import 'katex/dist/katex.min.css';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { publishedPosts, formatPostDate, type BlogPost } from '../lib/posts';
+import { copy, type Language } from '../data/site';
+import { blogPath, postPath, otherLanguage } from '../lib/routes';
+interface Props { post: BlogPost }
+const { post } = Astro.props;
+const language: Language = post.data.language;
+const t = copy[language];
+const posts = await publishedPosts();
+const translation = posts.find((entry) => entry.data.language === otherLanguage(language) && entry.data.translationKey === post.data.translationKey);
+const alternateHref = translation ? postPath(translation.data.language, translation.data.slug) : null;
+const { Content, headings } = await render(post);
+const tableOfContents = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+---
+<BaseLayout language={language} title={`${post.data.title} — Bo Yang`} description={post.data.description} active="blog" alternateHref={alternateHref} article>
+  <article class="container article-container" id="top">
+    <header class="article-header">
+      <a class="back-link" href={blogPath(language)}>← {t.backToBlog}</a>
+      <h1>{post.data.title}</h1>
+      <p class="post-meta"><time datetime={post.data.date.toISOString()}>{formatPostDate(post.data.date, language)}</time> · Bo Yang</p>
+      <p class="article-description">{post.data.description}</p>
+      {!translation && <p class="translation-note">{t.untranslated}</p>}
+    </header>
+    {tableOfContents.length > 0 && (
+      <details class="article-toc"><summary>{t.contents}</summary><ol>{tableOfContents.map((heading) => <li class={`toc-depth-${heading.depth}`}><a href={`#${heading.slug}`}>{heading.text}</a></li>)}</ol></details>
+    )}
+    <div class="prose"><Content /></div>
+  </article>
+</BaseLayout>

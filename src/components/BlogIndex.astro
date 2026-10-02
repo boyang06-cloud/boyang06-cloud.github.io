@@ -1,0 +1,25 @@
+---
+import { copy, type Language } from '../data/site';
+import { publishedPosts, formatPostDate } from '../lib/posts';
+import { postPath } from '../lib/routes';
+interface Props { language: Language }
+const { language } = Astro.props;
+const t = copy[language];
+const posts = await publishedPosts(language);
+---
+<div class="container blog-container" id="top">
+  <header class="page-heading"><h1>{t.blogTitle}</h1><p>{t.blogSubtitle}</p></header>
+  {posts.length ? (
+    <ul class="post-list">
+      {posts.map((post) => (
+        <li>
+          <time datetime={post.data.date.toISOString()}>{formatPostDate(post.data.date, language)}</time>
+          <h2><a href={postPath(language, post.data.slug)}>{post.data.title}</a></h2>
+          <p>{post.data.description}</p>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <div class="blog-empty"><p>{t.blogEmpty}</p><p>{t.blogEmptyDetail}</p></div>
+  )}
+</div>

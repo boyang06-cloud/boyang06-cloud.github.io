@@ -1,0 +1,80 @@
+---
+import { site, copy, type Language } from '../data/site';
+interface Props { language: Language }
+const { language } = Astro.props;
+const t = copy[language];
+const sections = ['about', 'news', 'internship', 'publications', 'experience', 'education'] as const;
+---
+<div class="container home-content" id="top">
+  <section class="hero" aria-labelledby="profile-name">
+    <div class="portrait-wrap">
+      <img class="portrait" src={site.portrait} alt={language === 'en' ? 'Portrait of Bo Yang' : '杨博的照片'} width="260" height="260" fetchpriority="high" />
+    </div>
+    <div class="hero-copy">
+      <h1 id="profile-name">Bo Yang <span class="name-chinese" lang="zh-CN">杨博</span></h1>
+      <p class="affiliation">{t.affiliation}<br /><span>{t.lab}</span></p>
+      <div class="research-interests">
+        <p class="research-primary">{t.primaryInterest}</p>
+        <p class="research-secondary">{t.secondaryInterest}</p>
+      </div>
+      <div class="profile-links">
+        <a href={`mailto:${site.email}`}>{t.email}<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 6l8 6 8-6" /></svg></a>
+        <span aria-hidden="true">/</span>
+        <a href={site.github}>GitHub<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10" /></svg></a>
+        {site.cvPath && <><span aria-hidden="true">/</span><a href={site.cvPath}>{t.cv}</a></>}
+      </div>
+    </div>
+  </section>
+
+  <nav class="section-nav" aria-label={language === 'en' ? 'Homepage sections' : '首页栏目'}>
+    {sections.map((id) => <a href={`#${id}`}>{t[id]}</a>)}
+  </nav>
+
+  <section class="academic-section about-section" id="about" aria-labelledby="about-title">
+    <h2 id="about-title">{t.about}</h2>
+    <div class="about-prose">
+      <p>{t.aboutLead} {t.aboutResearch}</p>
+      <p>{t.aboutPrevious}</p>
+    </div>
+  </section>
+
+  <section class="academic-section" id="news" aria-labelledby="news-title">
+    <h2 id="news-title">{t.news}</h2>
+    <ul class="news-list">
+      <li><time datetime="2026-08">2026.08</time><span>{t.newsVcip}</span></li>
+      <li><time datetime="2025-09">2025.09</time><span>{t.newsNkcv}</span></li>
+    </ul>
+  </section>
+
+  <section class="academic-section empty-section" id="internship" aria-labelledby="internship-title" data-entry-count={site.internships.length}>
+    <h2 id="internship-title">{t.internship}</h2>
+    {site.internships.map((entry) => <div class="entry-row"><h3>{entry.name}</h3><span class="entry-period">{entry.period}</span></div>)}
+  </section>
+
+  <section class="academic-section empty-section" id="publications" aria-labelledby="publications-title" data-entry-count={site.publications.length}>
+    <h2 id="publications-title">{t.publications}</h2>
+    {site.publications.map((entry) => <article class="publication-entry"><h3>{entry.url ? <a href={entry.url}>{entry.title}</a> : entry.title}</h3><p>{entry.authors}</p><p>{entry.status}</p></article>)}
+  </section>
+
+  <section class="academic-section" id="experience" aria-labelledby="experience-title">
+    <h2 id="experience-title">{t.experience}</h2>
+    <div class="experience-list">
+      {site.experiences.map((entry) => (
+        <article class="experience-entry">
+          <div><h3>{entry.lab}</h3><p class="entry-role">{t.researchRole}</p></div>
+          <p class="entry-period"><time datetime={entry.start.replace('.', '-')}>{entry.start}</time><span class="period-dash">—</span>{entry.end ? <time datetime={entry.end.replace('.', '-')}>{entry.end}</time> : t.present}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="academic-section" id="education" aria-labelledby="education-title">
+    <h2 id="education-title">{t.education}</h2>
+    <article class="education-entry">
+      <div><h3>{site.education.university[language]}</h3><p class="entry-role">{site.education.degree[language]}</p></div>
+      <div class="education-period"><p class="entry-period">{site.education.start} <span class="period-dash">—</span> {site.education.end}</p><p class="expected-graduation">{t.expected}</p></div>
+    </article>
+  </section>
+
+  <div class="contact-line"><p>{t.contact}</p><a href={`mailto:${site.email}`}>{site.email} <span aria-hidden="true">↗</span></a></div>
+</div>

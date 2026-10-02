@@ -1,0 +1,79 @@
+---
+import '@fontsource/lato/400.css';
+import '@fontsource/lato/400-italic.css';
+import '@fontsource/lato/700.css';
+import '../styles/global.css';
+import { site, copy, type Language } from '../data/site';
+import { homePath, blogPath, otherLanguage } from '../lib/routes';
+
+interface Props {
+  language: Language;
+  title?: string;
+  description?: string;
+  active?: 'home' | 'blog';
+  alternateHref?: string | null;
+  article?: boolean;
+}
+
+const { language, title, description, active = 'home', alternateHref, article = false } = Astro.props;
+const t = copy[language];
+const other = otherLanguage(language);
+const switchHref = alternateHref === undefined ? homePath(other) : alternateHref;
+const canonical = new URL(Astro.url.pathname, site.origin);
+const pageTitle = title ?? t.title;
+const pageDescription = description ?? t.description;
+---
+<!doctype html>
+<html lang={language === 'zh' ? 'zh-CN' : 'en'}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={pageDescription} />
+    <meta name="theme-color" content="#000000" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap.xml" />
+    <link rel="alternate" hreflang={language === 'zh' ? 'zh-CN' : 'en'} href={canonical} />
+    {switchHref && <link rel="alternate" hreflang={other === 'zh' ? 'zh-CN' : 'en'} href={new URL(switchHref, site.origin)} />}
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content={article ? 'article' : 'website'} />
+    <meta property="og:locale" content={language === 'zh' ? 'zh_CN' : 'en_US'} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t.skip}</a>
+    <header class="site-header">
+      <nav class="header-inner" aria-label={language === 'en' ? 'Main navigation' : '主导航'}>
+        <a class="wordmark" href={homePath(language)}>Bo Yang<span class="wordmark-chinese">杨博</span></a>
+        <div class="nav-links">
+          <a href={homePath(language)} aria-current={active === 'home' ? 'page' : undefined}>{t.home}</a>
+          <a href={blogPath(language)} aria-current={active === 'blog' ? 'page' : undefined}>{t.blog}</a>
+          {site.cvPath && <a href={site.cvPath}>{t.cv}</a>}
+          <span class="nav-divider" aria-hidden="true"></span>
+          {switchHref ? (
+            <a class="language-switch" href={switchHref} lang={other === 'zh' ? 'zh-CN' : 'en'} aria-label={t.switchAria} data-language-switch>{t.switchLabel}<span aria-hidden="true">↗</span></a>
+          ) : (
+            <span class="language-unavailable" aria-disabled="true" title={t.translationUnavailable}>{t.switchLabel}</span>
+          )}
+        </div>
+      </nav>
+    </header>
+    <main id="main" tabindex="-1"><slot /></main>
+    <footer class="site-footer container">
+      <span>© {new Date().getUTCFullYear()} {t.footer}</span>
+      <a href="#top">{t.backToTop} <span aria-hidden="true">↑</span></a>
+    </footer>
+    <script>
+      document.querySelectorAll<HTMLAnchorElement>('[data-language-switch]').forEach((link) => {
+        link.addEventListener('click', () => {
+          if (window.location.hash && ['/', '/zh/'].includes(window.location.pathname)) {
+            link.hash = window.location.hash;
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
